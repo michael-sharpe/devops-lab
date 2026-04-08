@@ -1,0 +1,38 @@
+# Crossplane AWS ProviderConfig — points to LocalStack
+#
+# WHY a ProviderConfig?
+# It tells the AWS provider WHERE to create resources and HOW to
+# authenticate. For LocalStack, we point to localhost:4566 with
+# dummy credentials. To target real AWS, change the endpoint and
+# use real credentials via a Secret.
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aws-credentials
+  namespace: crossplane-system
+type: Opaque
+stringData:
+  credentials: |
+    [default]
+    aws_access_key_id = test
+    aws_secret_access_key = test
+---
+apiVersion: aws.upbound.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: default
+spec:
+  credentials:
+    source: Secret
+    secretRef:
+      namespace: crossplane-system
+      name: aws-credentials
+      key: credentials
+  # Point to LocalStack instead of real AWS
+  # LocalStack is on the 'kind' Docker network at localstack:4566
+  endpoint:
+    hostnameImmutable: true
+    url:
+      type: Static
+      static: http://localstack:4566

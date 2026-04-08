@@ -166,6 +166,28 @@ prometheus: ## Port-forward Prometheus to localhost:9090
 	kubectl port-forward -n monitoring svc/kube-prometheus-stack-prometheus 9090:9090
 
 # ==============================================================================
+# Phase 6: IaC & Provisioning
+# ==============================================================================
+
+.PHONY: localstack-up
+localstack-up: ## Start LocalStack (local AWS mock)
+	@echo "$(GREEN)Starting LocalStack...$(NC)"
+	docker compose -f terraform/docker-compose.localstack.yml up -d
+	@echo "$(GREEN)LocalStack running at http://localhost:4566$(NC)"
+	@echo "$(YELLOW)Verify: curl -s http://localhost:4566/_localstack/health | python3 -m json.tool$(NC)"
+
+.PHONY: localstack-down
+localstack-down: ## Stop LocalStack
+	@echo "$(RED)Stopping LocalStack...$(NC)"
+	docker compose -f terraform/docker-compose.localstack.yml down
+
+.PHONY: vault-ui
+vault-ui: ## Port-forward Vault UI to localhost:8200
+	@echo "$(GREEN)Vault UI available at: http://localhost:8200$(NC)"
+	@echo "$(YELLOW)Token: root$(NC)"
+	kubectl port-forward -n vault svc/vault 8200:8200
+
+# ==============================================================================
 # Convenience targets
 # ==============================================================================
 

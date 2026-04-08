@@ -1,0 +1,12 @@
+# Ansible inventory — targeting localhost
+#
+# WHY localhost?
+# This lab runs on a single machine. Ansible's real power is managing
+# fleets of remote servers, but you can learn the concepts (inventory,
+# playbooks, roles, tasks, handlers) using localhost. The playbooks
+# here automate the same setup steps you'd do manually.
+all:
+  hosts:
+    localhost:
+      ansible_connection: local
+      ansible_python_interpreter: auto_silent

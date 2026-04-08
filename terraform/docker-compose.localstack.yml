@@ -1,0 +1,40 @@
+# LocalStack — local AWS API mock
+# Docs: https://docs.localstack.cloud/
+#
+# WHY LocalStack?
+# It provides a fully functional local AWS cloud stack. Terraform and
+# Crossplane can target it instead of real AWS, so you can learn IaC
+# without an AWS account or incurring costs.
+#
+# Start: docker compose -f terraform/docker-compose.localstack.yml up -d
+# Stop:  docker compose -f terraform/docker-compose.localstack.yml down
+# Or:    make localstack-up / make localstack-down
+services:
+  localstack:
+    image: localstack/localstack:latest
+    container_name: localstack
+    ports:
+      - "4566:4566"            # LocalStack Gateway (all AWS services)
+      - "4510-4559:4510-4559"  # External service port range
+    environment:
+      # Services to enable (free tier in LocalStack community edition)
+      - SERVICES=s3,iam,sts,ec2,dynamodb
+      # Debug logging
+      - DEBUG=0
+      # Persist data across restarts
+      - PERSISTENCE=1
+    volumes:
+      - localstack-data:/var/lib/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+    # Connect to kind's Docker network so Crossplane (in-cluster) can
+    # reach LocalStack at localstack:4566
+    networks:
+      - kind
+
+volumes:
+  localstack-data:
+
+networks:
+  kind:
+    external: true
+    name: kind

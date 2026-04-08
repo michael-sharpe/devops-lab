@@ -1,0 +1,70 @@
+# Playbook: Post-creation cluster configuration
+#
+# WHY?
+# After `kind create cluster`, there are configuration tasks that
+# Ansible can automate: verifying node health, creating namespaces,
+# labeling nodes, and checking connectivity.
+#
+# Run: ansible-playbook -i ansible/inventory/local.yml ansible/playbooks/configure-cluster.yml
+---
+- name: Configure the kind cluster
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    cluster_name: devops-lab
+    namespaces:
+      - monitoring
+      - tracing
+      - vault
+      - falco
+      - crossplane-system
+
+  tasks:
+    - name: Verify cluster is running
+      ansible.builtin.command: kubectl cluster-info --context kind-{{ cluster_name }}
+      register: cluster_info
+      changed_when: false
+
+    - name: Display cluster info
+      ansible.builtin.debug:
+        msg: "{{ cluster_info.stdout_lines }}"
+
+    - name: Get node status
+      ansible.builtin.command: kubectl get nodes --context kind-{{ cluster_name }} -o wide
+      register: nodes
+      changed_when: false
+
+    - name: Display nodes
+      ansible.builtin.debug:
+        msg: "{{ nodes.stdout_lines }}"
+
+    - name: Ensure namespaces exist
+      ansible.builtin.command: >
+        kubectl create namespace {{ item }}
+        --context kind-{{ cluster_name }}
+        --dry-run=client -o yaml
+      register: ns_yaml
+      changed_when: false
+      loop: "{{ namespaces }}"
+
+    - name: Apply namespaces
+      ansible.builtin.shell: |
+        kubectl create namespace {{ item }}
+        --context kind-{{ cluster_name }}
+        --dry-run=client -o yaml | kubectl apply -f -
+      loop: "{{ namespaces }}"
+      changed_when: false
+
+    - name: Verify all system pods are running
+      ansible.builtin.command: kubectl get pods -n kube-system --context kind-{{ cluster_name }}
+      register: system_pods
+      changed_when: false
+
+    - name: Display system pods
+      ansible.builtin.debug:
+        msg: "{{ system_pods.stdout_lines }}"
+
+    - name: Cluster configuration complete
+      ansible.builtin.debug:
+        msg: "Cluster '{{ cluster_name }}' is configured and ready."

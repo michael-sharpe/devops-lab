@@ -1,0 +1,35 @@
+# CompositeResourceDefinition (XRD) — defines a simplified S3 bucket API
+#
+# WHY XRDs?
+# Raw AWS CRDs expose EVERY field. An XRD lets you create a simpler,
+# opinionated API for your team. Instead of 50 fields, you expose just
+# the ones that matter (name, region). The Composition fills in defaults.
+# This is "platform engineering" — building golden paths for developers.
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: xs3buckets.devopslab.io
+spec:
+  group: devopslab.io
+  names:
+    kind: XS3Bucket
+    plural: xs3buckets
+  claimNames:
+    kind: S3Bucket
+    plural: s3buckets
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                region:
+                  type: string
+                  default: us-east-1
+                  description: AWS region for the bucket
+              required: []

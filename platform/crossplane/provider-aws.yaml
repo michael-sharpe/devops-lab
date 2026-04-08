@@ -1,0 +1,15 @@
+# Crossplane AWS Provider
+# This installs the AWS provider into Crossplane, which gives you
+# CRDs for every AWS resource (S3 Bucket, IAM Role, VPC, etc.)
+#
+# After this is installed:
+#   kubectl get providers  → shows upbound-provider-family-aws
+#   kubectl get crds | grep aws  → shows all available AWS resource types
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: upbound-provider-family-aws
+spec:
+  package: xpkg.upbound.io/upbound/provider-family-aws:v1.20.0
+  runtimeConfigRef:
+    name: default

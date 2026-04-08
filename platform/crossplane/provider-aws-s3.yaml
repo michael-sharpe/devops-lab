@@ -1,0 +1,11 @@
+# Crossplane AWS S3 Provider
+# The family provider installs the base; individual service providers
+# add CRDs for specific AWS services.
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: upbound-provider-aws-s3
+spec:
+  package: xpkg.upbound.io/upbound/provider-aws-s3:v1.20.0
+  runtimeConfigRef:
+    name: default

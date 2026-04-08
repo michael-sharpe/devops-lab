@@ -1,0 +1,27 @@
+# Composition — maps the simplified XS3Bucket API to actual AWS resources
+#
+# WHY Compositions?
+# The XRD defines WHAT developers can request. The Composition defines
+# HOW it's implemented. You can have multiple Compositions for the same
+# XRD (e.g., one for dev with minimal settings, one for prod with
+# encryption, versioning, and lifecycle policies).
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: s3bucket-localstack
+  labels:
+    provider: localstack
+spec:
+  compositeTypeRef:
+    apiVersion: devopslab.io/v1alpha1
+    kind: XS3Bucket
+  resources:
+    - name: bucket
+      base:
+        apiVersion: s3.aws.upbound.io/v1beta2
+        kind: Bucket
+        spec:
+          forProvider:
+            region: us-east-1
+          providerConfigRef:
+            name: default

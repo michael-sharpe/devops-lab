@@ -1,0 +1,81 @@
+# Playbook: Verify and install DevOps tools
+#
+# WHY?
+# Instead of a README saying "install these tools", this playbook
+# automates verification and installation. In production, Ansible
+# provisions servers, installs packages, and configures services.
+# This is a small example of that pattern.
+#
+# Run: ansible-playbook -i ansible/inventory/local.yml ansible/playbooks/setup-tools.yml
+---
+- name: Verify and install DevOps tools
+  hosts: localhost
+  gather_facts: true
+
+  vars:
+    required_tools:
+      - name: docker
+        command: docker --version
+      - name: kind
+        command: kind --version
+      - name: kubectl
+        command: kubectl version --client --short 2>/dev/null || kubectl version --client
+      - name: helm
+        command: helm version --short
+      - name: make
+        command: make --version | head -1
+
+    optional_tools:
+      - name: terraform
+        command: terraform version | head -1
+        install_hint: "https://developer.hashicorp.com/terraform/install"
+      - name: ansible
+        command: ansible --version | head -1
+        install_hint: "pip3 install ansible"
+      - name: pre-commit
+        command: pre-commit --version
+        install_hint: "pip3 install pre-commit"
+      - name: yamllint
+        command: yamllint --version
+        install_hint: "pip3 install yamllint"
+
+  tasks:
+    - name: Check required tools
+      ansible.builtin.shell: "{{ item.command }}"
+      register: required_results
+      loop: "{{ required_tools }}"
+      changed_when: false
+      failed_when: false
+
+    - name: Report required tools
+      ansible.builtin.debug:
+        msg: "{{ item.item.name }}: {{ 'OK — ' + item.stdout_lines[0] if item.rc == 0 else 'MISSING' }}"
+      loop: "{{ required_results.results }}"
+      loop_control:
+        label: "{{ item.item.name }}"
+
+    - name: Fail if required tools are missing
+      ansible.builtin.fail:
+        msg: "Required tool '{{ item.item.name }}' is not installed"
+      when: item.rc != 0
+      loop: "{{ required_results.results }}"
+      loop_control:
+        label: "{{ item.item.name }}"
+
+    - name: Check optional tools
+      ansible.builtin.shell: "{{ item.command }}"
+      register: optional_results
+      loop: "{{ optional_tools }}"
+      changed_when: false
+      failed_when: false
+
+    - name: Report optional tools
+      ansible.builtin.debug:
+        msg: "{{ item.item.name }}: {{ 'OK — ' + item.stdout_lines[0] if item.rc == 0 else 'MISSING — install with: ' + item.item.install_hint }}"
+      loop: "{{ optional_results.results }}"
+      loop_control:
+        label: "{{ item.item.name }}"
+
+    - name: Summary
+      ansible.builtin.debug:
+        msg: "All required tools are installed. Check optional tools above for any missing."

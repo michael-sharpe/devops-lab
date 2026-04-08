@@ -1,0 +1,19 @@
+# Crossplane Helm values
+# Chart: crossplane-stable/crossplane
+# Docs: https://docs.crossplane.io/
+#
+# WHY Crossplane?
+# Crossplane is "Terraform inside Kubernetes". It uses CRDs to define
+# cloud infrastructure declaratively, managed by controllers running
+# in-cluster. The key difference from Terraform:
+#   - Terraform: run CLI → create resources → state file on disk
+#   - Crossplane: create a K8s resource → controller reconciles → cloud resource
+# Crossplane continuously reconciles (like ArgoCD for infrastructure),
+# while Terraform only changes on `terraform apply`.
+
+resourcesCrossplane:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi

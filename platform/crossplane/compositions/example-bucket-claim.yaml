@@ -1,0 +1,16 @@
+# Example Claim — request an S3 bucket using our simplified API
+#
+# This is what a developer would create. They don't need to know about
+# AWS S3 APIs, bucket policies, or region configurations. They just
+# ask for a bucket and the platform handles the rest.
+#
+# Apply: kubectl apply -f platform/crossplane/compositions/example-bucket-claim.yaml
+# Check: kubectl get s3bucket
+#        kubectl get bucket  (the actual AWS resource)
+apiVersion: devopslab.io/v1alpha1
+kind: S3Bucket
+metadata:
+  name: my-app-bucket
+  namespace: default
+spec:
+  region: us-east-1
