@@ -1,0 +1,51 @@
+# Grafana Tempo Helm values
+# Chart: grafana/tempo (single-binary / monolithic mode)
+# Docs: https://grafana.com/docs/tempo/latest/
+#
+# WHY Tempo over Jaeger?
+# Grafana is already in the stack via kube-prometheus-stack. Tempo is Grafana's
+# native tracing backend — datasource config is first-class, traces correlate
+# with metrics via TraceQL directly in Grafana dashboards. Tempo uses local
+# storage (no Elasticsearch/Cassandra). One binary vs Jaeger's 4 components.
+
+# Tempo runs in monolithic (single-binary) mode. This is the simplest
+# deployment and perfect for a learning lab. Production would use the
+# distributed (microservices) mode for scalability.
+tempo:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
+
+  # Receivers define how traces get INTO Tempo.
+  # OTLP is the OpenTelemetry-native protocol — the OTel Collector
+  # will send traces here via gRPC (port 4317).
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: "0.0.0.0:4317"
+        http:
+          endpoint: "0.0.0.0:4318"
+    # Zipkin receiver for Istio compatibility (Istio sidecars emit Zipkin format)
+    zipkin:
+      endpoint: "0.0.0.0:9411"
+
+  # Local filesystem storage — no object storage (S3/GCS) needed for a lab.
+  storage:
+    trace:
+      backend: local
+      local:
+        path: /var/tempo/traces
+      wal:
+        path: /var/tempo/wal
+
+  # How long to keep traces
+  retention: 48h
+
+# Persistent volume for trace data
+persistence:
+  enabled: true
+  size: 5Gi

@@ -1,0 +1,44 @@
+# Grafana Tempo — distributed tracing backend
+#
+# Receives traces from the OTel Collector (and directly from Istio sidecars)
+# and makes them queryable via Grafana's Explore panel using TraceQL.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: grafana-tempo
+  namespace: argocd
+  labels:
+    phase: "3"
+    component: observability
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  sources:
+    - repoURL: https://grafana.github.io/helm-charts
+      chart: tempo
+      targetRevision: 1.24.4
+      helm:
+        valueFiles:
+          - $values/platform/grafana-tempo/values.yaml
+    - repoURL: https://github.com/michael-sharpe/devops-lab.git
+      targetRevision: main
+      ref: values
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: tracing
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 1m

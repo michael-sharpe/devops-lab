@@ -1,0 +1,124 @@
+# kube-prometheus-stack Helm values
+# Chart: prometheus-community/kube-prometheus-stack
+# Docs: https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
+#
+# WHY kube-prometheus-stack?
+# It bundles Prometheus, Grafana, AlertManager, node-exporter, kube-state-metrics,
+# and dozens of pre-configured recording rules + alerts in a single chart. Setting
+# these up individually would take days. The stack gives you production-grade
+# observability out of the box.
+
+# --- Prometheus ---
+prometheus:
+  prometheusSpec:
+    # 7 days retention. Production systems often use Thanos or Mimir for
+    # long-term storage, but 7d is fine for a learning lab.
+    retention: 7d
+
+    # Storage for metrics. Without this, data is lost on pod restart.
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+    resources:
+      requests:
+        cpu: 200m
+        memory: 1Gi
+      limits:
+        memory: 2Gi
+
+    # Scrape all ServiceMonitors across all namespaces.
+    # By default, Prometheus only watches its own namespace.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+
+# --- Grafana ---
+grafana:
+  # Admin credentials for the learning lab
+  adminPassword: "devops-lab"
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+  # Sidecar watches for ConfigMaps with label grafana_dashboard=1
+  # and auto-loads them as dashboards. This is how custom dashboards
+  # get into Grafana without manual import.
+  sidecar:
+    dashboards:
+      enabled: true
+      searchNamespace: ALL
+    datasources:
+      enabled: true
+      searchNamespace: ALL
+
+  # Add Tempo as a datasource so traces are accessible from Grafana.
+  # WHY configure here? The sidecar approach works too, but inline is
+  # simpler for a single extra datasource and keeps everything in one file.
+  additionalDataSources:
+    - name: Tempo
+      type: tempo
+      uid: tempo
+      url: http://tempo.tracing.svc.cluster.local:3100
+      access: proxy
+      isDefault: false
+      jsonData:
+        tracesToMetrics:
+          datasourceUid: prometheus
+        serviceMap:
+          datasourceUid: prometheus
+        nodeGraph:
+          enabled: true
+        tracesToLogs:
+          datasourceUid: ""
+
+  # Expose Grafana via NodePort for easy access before ingress is set up
+  service:
+    type: NodePort
+    nodePort: 31000
+
+# --- AlertManager ---
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+
+# --- Node Exporter ---
+# Collects host-level metrics (CPU, memory, disk, network) from each node.
+nodeExporter:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 32Mi
+    limits:
+      memory: 64Mi
+
+# --- kube-state-metrics ---
+# Generates metrics about the state of Kubernetes objects (deployments,
+# pods, nodes, etc.). This is what powers dashboards showing pod counts,
+# restart counts, and resource requests vs usage.
+kube-state-metrics:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+
+# --- Disabled components ---
+# kube-proxy metrics are not exposed by default in kind clusters.
+# Disabling avoids scrape errors in the logs.
+kubeProxy:
+  enabled: false

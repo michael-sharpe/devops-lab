@@ -1,0 +1,137 @@
+# OpenTelemetry Collector Helm values
+# Chart: open-telemetry/opentelemetry-collector
+# Docs: https://opentelemetry.io/docs/collector/
+#
+# WHY an OTel Collector?
+# The Collector sits between your applications and your observability backends.
+# Instead of each app sending traces/metrics directly to Tempo/Prometheus,
+# they send to the Collector, which can batch, filter, enrich, and route
+# telemetry to multiple backends. This decouples apps from backends — you can
+# swap Tempo for Jaeger without changing any application code.
+#
+# WHY DaemonSet mode?
+# A DaemonSet runs one Collector pod per node. Applications on each node send
+# telemetry to their local Collector (low latency, no cross-node traffic).
+# Alternative modes: Deployment (centralized) or Sidecar (per-pod).
+
+# Image must be explicitly set since chart v0.100+
+image:
+  repository: otel/opentelemetry-collector-contrib
+  # The -contrib image includes all receivers, processors, and exporters.
+  # The core image (otel/opentelemetry-collector) has fewer components.
+
+mode: daemonset
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi
+
+# The Collector config defines the telemetry pipeline:
+# Receivers → Processors → Exporters
+config:
+  receivers:
+    # OTLP is the OpenTelemetry-native protocol.
+    # Applications instrumented with OTel SDKs send data here.
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+
+    # Zipkin receiver — Istio sidecars can send traces in Zipkin format.
+    # This means Istio traces flow through the Collector pipeline and
+    # benefit from the same processing as app traces.
+    zipkin:
+      endpoint: 0.0.0.0:9411
+
+  processors:
+    # Batch: groups telemetry into batches before exporting.
+    # WHY: Reduces the number of outbound requests, improving throughput
+    # and reducing load on backends.
+    batch:
+      timeout: 5s
+      send_batch_size: 1024
+
+    # Memory limiter: prevents the Collector from consuming too much RAM.
+    # WHY: Without this, a burst of telemetry could OOMKill the Collector.
+    memory_limiter:
+      check_interval: 5s
+      limit_mib: 400
+      spike_limit_mib: 100
+
+    # K8s attributes: enriches telemetry with Kubernetes metadata
+    # (pod name, namespace, node, labels). This makes traces and metrics
+    # much more useful — you can filter by namespace or deployment.
+    k8sattributes:
+      extract:
+        metadata:
+          - k8s.namespace.name
+          - k8s.pod.name
+          - k8s.node.name
+          - k8s.deployment.name
+      passthrough: false
+      pod_association:
+        - sources:
+            - from: resource_attribute
+              name: k8s.pod.ip
+        - sources:
+            - from: connection
+
+  exporters:
+    # Send traces to Grafana Tempo via OTLP gRPC
+    otlp/tempo:
+      endpoint: tempo.tracing.svc.cluster.local:4317
+      tls:
+        insecure: true
+
+    # Expose metrics in Prometheus format so Prometheus can scrape them.
+    # This lets you see Collector health metrics (spans received, dropped,
+    # queue depth) in Grafana.
+    prometheus:
+      endpoint: 0.0.0.0:8889
+
+    # Debug exporter — logs a sample of telemetry to stdout.
+    # Useful for verifying the pipeline is working.
+    debug:
+      verbosity: basic
+
+  # Wire the pipeline together
+  service:
+    pipelines:
+      traces:
+        receivers: [otlp, zipkin]
+        processors: [memory_limiter, k8sattributes, batch]
+        exporters: [otlp/tempo, debug]
+      metrics:
+        receivers: [otlp]
+        processors: [memory_limiter, batch]
+        exporters: [prometheus, debug]
+
+# ServiceMonitor for Prometheus to scrape the Collector's own metrics
+ports:
+  prometheus:
+    enabled: true
+    containerPort: 8889
+    servicePort: 8889
+    protocol: TCP
+
+serviceMonitor:
+  enabled: true
+  metricsEndpoints:
+    - port: prometheus
+
+# The Collector needs permissions to query the K8s API for pod metadata
+# (used by the k8sattributes processor)
+clusterRole:
+  create: true
+  rules:
+    - apiGroups: [""]
+      resources: ["pods", "namespaces", "nodes"]
+      verbs: ["get", "list", "watch"]
+    - apiGroups: ["apps"]
+      resources: ["replicasets", "deployments"]
+      verbs: ["get", "list", "watch"]

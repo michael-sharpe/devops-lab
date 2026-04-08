@@ -1,0 +1,45 @@
+# OpenTelemetry Collector — telemetry pipeline (DaemonSet)
+#
+# Receives traces/metrics from applications and Istio sidecars, enriches
+# them with Kubernetes metadata, and routes them to Tempo (traces) and
+# Prometheus (metrics). One Collector pod runs on each node.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: otel-collector
+  namespace: argocd
+  labels:
+    phase: "3"
+    component: observability
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  sources:
+    - repoURL: https://open-telemetry.github.io/opentelemetry-helm-charts
+      chart: opentelemetry-collector
+      targetRevision: 0.147.2
+      helm:
+        valueFiles:
+          - $values/platform/otel-collector/values.yaml
+    - repoURL: https://github.com/michael-sharpe/devops-lab.git
+      targetRevision: main
+      ref: values
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 1m
