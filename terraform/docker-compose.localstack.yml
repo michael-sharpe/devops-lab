@@ -11,7 +11,9 @@
 # Or:    make localstack-up / make localstack-down
 services:
   localstack:
-    image: localstack/localstack:latest
+    # Pin to 3.8 — the last version that doesn't require an auth token.
+    # Versions after this require LOCALSTACK_AUTH_TOKEN even for community features.
+    image: localstack/localstack:3.8
     container_name: localstack
     ports:
       - "4566:4566"            # LocalStack Gateway (all AWS services)
