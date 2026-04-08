@@ -84,7 +84,7 @@ config:
   exporters:
     # Send traces to Grafana Tempo via OTLP gRPC
     otlp/tempo:
-      endpoint: tempo.tracing.svc.cluster.local:4317
+      endpoint: grafana-tempo.tracing.svc.cluster.local:4317
       tls:
         insecure: true
 
