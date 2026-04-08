@@ -130,13 +130,13 @@ argocd-password: ## Retrieve the ArgoCD admin password
 
 .PHONY: argocd-portforward
 argocd-portforward: ## Port-forward ArgoCD UI to localhost:8080
-	@echo "$(GREEN)ArgoCD UI will be available at: https://localhost:8080$(NC)"
+	@echo "$(GREEN)ArgoCD UI will be available at: http://localhost:8080$(NC)"
 	@echo "$(YELLOW)Username: admin$(NC)"
 	@echo -n "$(YELLOW)Password: $(NC)" && \
 		kubectl -n $(ARGOCD_NS) get secret argocd-initial-admin-secret \
 		-o jsonpath='{.data.password}' | base64 -d && echo ""
 	@echo ""
-	kubectl port-forward svc/argocd-server -n $(ARGOCD_NS) 8080:443
+	kubectl port-forward svc/argocd-server -n $(ARGOCD_NS) 8080:80
 
 .PHONY: argocd-bootstrap
 argocd-bootstrap: ## Apply the root app-of-apps Application
