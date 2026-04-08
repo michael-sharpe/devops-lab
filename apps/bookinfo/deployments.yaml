@@ -42,7 +42,7 @@ spec:
               cpu: 50m
               memory: 64Mi
             limits:
-              memory: 128Mi
+              memory: 256Mi
 ---
 apiVersion: v1
 kind: Service
@@ -89,7 +89,7 @@ spec:
               cpu: 50m
               memory: 64Mi
             limits:
-              memory: 128Mi
+              memory: 256Mi
 ---
 apiVersion: v1
 kind: Service
@@ -136,7 +136,7 @@ spec:
               cpu: 50m
               memory: 64Mi
             limits:
-              memory: 128Mi
+              memory: 256Mi
 ---
 apiVersion: v1
 kind: Service
@@ -183,7 +183,7 @@ spec:
               cpu: 50m
               memory: 64Mi
             limits:
-              memory: 128Mi
+              memory: 256Mi
 ---
 # --- reviews v2 (black stars) ---
 apiVersion: apps/v1
@@ -216,7 +216,7 @@ spec:
               cpu: 50m
               memory: 64Mi
             limits:
-              memory: 128Mi
+              memory: 256Mi
 ---
 # --- reviews v3 (red stars) ---
 apiVersion: apps/v1
@@ -249,7 +249,7 @@ spec:
               cpu: 50m
               memory: 64Mi
             limits:
-              memory: 128Mi
+              memory: 256Mi
 ---
 apiVersion: v1
 kind: Service
