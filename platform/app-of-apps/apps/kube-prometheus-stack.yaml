@@ -41,6 +41,10 @@ spec:
       # ServerSideApply required — kube-prometheus-stack creates large CRDs
       # that exceed the annotation size limit for client-side apply
       - ServerSideApply=true
+      # ServerSideDiff uses the API server's schema for diffing instead of
+      # ArgoCD's client-side schema. Fixes "field not declared in schema"
+      # errors when CRDs have fields newer than ArgoCD knows about.
+      - ServerSideDiff=true
     retry:
       limit: 5
       backoff:
