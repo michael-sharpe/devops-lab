@@ -33,6 +33,7 @@ spec:
       - argo-rollouts
       - backstage
       - chaos-mesh
+      - local-path-storage
   parameters:
     labels:
       - "app"
