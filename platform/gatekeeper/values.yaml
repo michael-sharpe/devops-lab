@@ -1,0 +1,37 @@
+# OPA Gatekeeper Helm values
+# Chart: gatekeeper/gatekeeper
+# Docs: https://open-policy-agent.github.io/gatekeeper/
+#
+# WHY Gatekeeper?
+# Gatekeeper is a Kubernetes admission controller that enforces policies
+# written in Rego (OPA's policy language). It intercepts API requests
+# (create, update) and rejects them if they violate policies. This is
+# how you enforce governance at scale: required labels, no privileged
+# containers, mandatory resource limits, etc.
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi
+
+audit:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+# Don't block system namespaces — only enforce policies on user workloads
+exemptNamespaces:
+  - kube-system
+  - kube-public
+  - kube-node-lease
+  - argocd
+  - istio-system
+  - monitoring
+  - tracing
+  - vault
+  - gatekeeper-system

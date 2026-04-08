@@ -1,0 +1,28 @@
+# Constraint: All containers must have CPU and memory limits
+#
+# Test it:
+#   kubectl run test --image=nginx -n default --labels="app=test"
+#   → Should be REJECTED (no resource limits)
+#
+#   kubectl run test --image=nginx -n default --labels="app=test" \
+#     --requests='cpu=50m,memory=64Mi' --limits='cpu=100m,memory=128Mi'
+#   → Should be ALLOWED
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequireResourceLimits
+metadata:
+  name: require-resource-limits
+spec:
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    excludedNamespaces:
+      - kube-system
+      - kube-public
+      - argocd
+      - istio-system
+      - monitoring
+      - tracing
+      - vault
+      - gatekeeper-system
+      - falco

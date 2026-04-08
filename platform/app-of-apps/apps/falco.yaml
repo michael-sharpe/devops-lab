@@ -1,0 +1,56 @@
+# Falco — runtime security monitoring
+#
+# NOTE: Falco uses eBPF to monitor system calls. On WSL2, the modern_ebpf
+# driver should work with kernel 6.6+. If pods crash with driver errors,
+# edit platform/falco/values.yaml and change driver.kind to "manual".
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: falco
+  namespace: argocd
+  labels:
+    phase: "5"
+    component: security
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  sources:
+    - repoURL: https://falcosecurity.github.io/charts
+      chart: falco
+      targetRevision: 8.0.1
+      helm:
+        valueFiles:
+          - $values/platform/falco/values.yaml
+    - repoURL: https://github.com/michael-sharpe/devops-lab.git
+      targetRevision: main
+      ref: values
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: falco
+
+  ignoreDifferences:
+    - group: apps
+      kind: DaemonSet
+      jqPathExpressions:
+        - .status.terminatingReplicas
+    - group: apps
+      kind: Deployment
+      jqPathExpressions:
+        - .status.terminatingReplicas
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideDiff=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 1m

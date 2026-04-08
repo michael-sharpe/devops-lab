@@ -1,0 +1,31 @@
+# ConstraintTemplate: Require resource limits on containers
+#
+# WHY? Without limits, a single misbehaving pod can consume all the
+# node's CPU or memory, starving other workloads. This policy ensures
+# every container declares what it needs (requests) and what it's
+# allowed to use (limits).
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: k8srequireresourcelimits
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sRequireResourceLimits
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8srequireresourcelimits
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          not container.resources.limits.memory
+          msg := sprintf("Container '%v' must set memory limits", [container.name])
+        }
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          not container.resources.limits.cpu
+          msg := sprintf("Container '%v' must set CPU limits", [container.name])
+        }

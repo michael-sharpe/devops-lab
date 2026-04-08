@@ -1,0 +1,24 @@
+# Constraint: No privileged containers allowed
+#
+# Test it:
+#   kubectl run test --image=nginx -n default --overrides='{"spec":{"containers":[{"name":"test","image":"nginx","securityContext":{"privileged":true}}]}}'
+#   → Should be REJECTED
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sNoPrivileged
+metadata:
+  name: no-privileged-containers
+spec:
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    excludedNamespaces:
+      - kube-system
+      - kube-public
+      - argocd
+      - istio-system
+      - monitoring
+      - tracing
+      - vault
+      - gatekeeper-system
+      - falco

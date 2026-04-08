@@ -1,0 +1,43 @@
+# HashiCorp Vault Helm values
+# Chart: hashicorp/vault
+# Docs: https://developer.hashicorp.com/vault/docs
+#
+# WHY Vault?
+# Secrets (API keys, database passwords, TLS certs) should NOT be stored
+# in Kubernetes Secrets (which are just base64-encoded, not encrypted).
+# Vault provides encryption at rest, fine-grained access policies, audit
+# logging, dynamic secrets, and automatic rotation.
+#
+# WHY dev mode?
+# Dev mode runs Vault in-memory with auto-unseal and a known root token.
+# This lets you learn Vault's APIs and K8s integration without dealing
+# with unsealing, storage backends, or HA. NEVER use dev mode in production.
+
+server:
+  dev:
+    enabled: true
+    devRootToken: "root"
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+# The Vault Agent Injector watches for pods with specific annotations
+# and injects a sidecar that fetches secrets from Vault and writes them
+# to a shared volume. This is the primary way applications consume
+# Vault secrets in Kubernetes.
+injector:
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+# Vault UI — accessible via port-forward
+ui:
+  enabled: true

@@ -1,0 +1,29 @@
+# Constraint: All pods must have 'app' and 'version' labels
+#
+# Test it:
+#   kubectl run test --image=nginx -n default
+#   → Should be REJECTED (missing labels)
+#
+#   kubectl run test --image=nginx -n default --labels="app=test,version=v1"
+#   → Should be ALLOWED
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequiredLabels
+metadata:
+  name: require-app-labels
+spec:
+  match:
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+    excludedNamespaces:
+      - kube-system
+      - kube-public
+      - argocd
+      - istio-system
+      - monitoring
+      - tracing
+      - vault
+      - gatekeeper-system
+  parameters:
+    labels:
+      - "app"

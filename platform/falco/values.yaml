@@ -1,0 +1,41 @@
+# Falco Helm values
+# Chart: falcosecurity/falco
+# Docs: https://falco.org/docs/
+#
+# WHY Falco?
+# Trivy scans images for KNOWN vulnerabilities. But what about runtime
+# threats? Falco monitors system calls in real-time and alerts on
+# suspicious behavior: shell spawned in a container, sensitive file read,
+# unexpected network connection, privilege escalation, etc.
+# Together, Trivy (static) + Falco (runtime) = defense in depth.
+
+driver:
+  # modern_ebpf works on kernel 5.8+. WSL2 kernel 6.6 should support it.
+  # If it fails, fall back to: kind: manual
+  kind: modern_ebpf
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi
+
+# Falcosidekick forwards Falco alerts to other systems.
+# We route alerts to Prometheus so they appear in Grafana.
+falcosidekick:
+  enabled: true
+  config:
+    prometheus:
+      enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+
+# Taint the DaemonSet to run on all nodes including control-plane
+tolerations:
+  - effect: NoSchedule
+    operator: Exists

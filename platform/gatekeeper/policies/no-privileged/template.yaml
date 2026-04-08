@@ -1,0 +1,30 @@
+# ConstraintTemplate: Block privileged containers
+#
+# WHY? Privileged containers have full access to the host's kernel,
+# devices, and network. A compromised privileged container = a
+# compromised node. This is one of the most critical security policies.
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: k8snoprivileged
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sNoPrivileged
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8snoprivileged
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          container.securityContext.privileged == true
+          msg := sprintf("Privileged container not allowed: %v", [container.name])
+        }
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.initContainers[_]
+          container.securityContext.privileged == true
+          msg := sprintf("Privileged init container not allowed: %v", [container.name])
+        }

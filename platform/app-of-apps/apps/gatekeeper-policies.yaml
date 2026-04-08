@@ -1,0 +1,35 @@
+# Gatekeeper Policies — ConstraintTemplates and Constraints
+# Deployed from Git (not a Helm chart) since these are our own manifests.
+# Depends on Gatekeeper being installed first (CRDs must exist).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gatekeeper-policies
+  namespace: argocd
+  labels:
+    phase: "5"
+    component: security
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/michael-sharpe/devops-lab.git
+    targetRevision: main
+    path: platform/gatekeeper/policies
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: gatekeeper-system
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m

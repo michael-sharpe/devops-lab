@@ -1,0 +1,24 @@
+# Trivy Operator Helm values
+# Chart: aqua/trivy-operator
+# Docs: https://aquasecurity.github.io/trivy-operator/
+#
+# WHY Trivy?
+# Trivy scans container images for known vulnerabilities (CVEs) and
+# generates VulnerabilityReport CRDs in the cluster. You can query
+# them with kubectl: kubectl get vulnerabilityreports -A
+# This gives you visibility into which images have known security issues.
+
+operator:
+  # Limit concurrent scans to avoid overwhelming the cluster
+  scanJobsConcurrentLimit: 3
+
+trivy:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+  # Severity levels to report (UNKNOWN, LOW, MEDIUM, HIGH, CRITICAL)
+  severity: "HIGH,CRITICAL"
