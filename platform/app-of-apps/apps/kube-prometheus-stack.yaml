@@ -32,6 +32,34 @@ spec:
     server: https://kubernetes.default.svc
     namespace: monitoring
 
+  # Ignore fields in live resources that ArgoCD's schema doesn't know about.
+  # The .status.terminatingReplicas field was added to StatefulSet in K8s 1.31+
+  # but ArgoCD's bundled schema doesn't include it yet, causing diff failures.
+  ignoreDifferences:
+    - group: apps
+      kind: StatefulSet
+      jsonPointers:
+        - /spec/volumeClaimTemplates/0/apiVersion
+        - /spec/volumeClaimTemplates/0/kind
+      managedFieldsManagers:
+        - kube-controller-manager
+    - group: apps
+      kind: StatefulSet
+      jqPathExpressions:
+        - .status.terminatingReplicas
+    - group: apps
+      kind: Deployment
+      jqPathExpressions:
+        - .status.terminatingReplicas
+    - group: admissionregistration.k8s.io
+      kind: MutatingWebhookConfiguration
+      jqPathExpressions:
+        - .webhooks[]?.clientConfig.caBundle
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
+      jqPathExpressions:
+        - .webhooks[]?.clientConfig.caBundle
+
   syncPolicy:
     automated:
       prune: true
