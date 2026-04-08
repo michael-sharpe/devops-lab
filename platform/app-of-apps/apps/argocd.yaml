@@ -37,6 +37,16 @@ spec:
     server: https://kubernetes.default.svc
     namespace: argocd
 
+  ignoreDifferences:
+    - group: apps
+      kind: StatefulSet
+      jqPathExpressions:
+        - .status.terminatingReplicas
+    - group: apps
+      kind: Deployment
+      jqPathExpressions:
+        - .status.terminatingReplicas
+
   syncPolicy:
     automated:
       prune: true
