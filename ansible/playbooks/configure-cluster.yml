@@ -40,19 +40,7 @@
         msg: "{{ nodes.stdout_lines }}"
 
     - name: Ensure namespaces exist
-      ansible.builtin.command: >
-        kubectl create namespace {{ item }}
-        --context kind-{{ cluster_name }}
-        --dry-run=client -o yaml
-      register: ns_yaml
-      changed_when: false
-      loop: "{{ namespaces }}"
-
-    - name: Apply namespaces
-      ansible.builtin.shell: |
-        kubectl create namespace {{ item }}
-        --context kind-{{ cluster_name }}
-        --dry-run=client -o yaml | kubectl apply -f -
+      ansible.builtin.shell: "kubectl create namespace {{ item }} --context kind-{{ cluster_name }} --dry-run=client -o yaml | kubectl apply -f -"
       loop: "{{ namespaces }}"
       changed_when: false
 
