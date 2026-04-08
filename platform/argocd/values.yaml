@@ -9,12 +9,10 @@
 
 # --- Server ---
 server:
-  # Expose via NodePort so the UI is accessible at localhost:30080/30443
-  # BEFORE an ingress controller exists (ingress comes in Phase 4).
+  # ClusterIP — access ArgoCD via 'make argocd-portforward' (localhost:8080).
+  # NodePort 30080/30443 are now used by the Istio ingress gateway.
   service:
-    type: NodePort
-    nodePortHttp: 30080
-    nodePortHttps: 30443
+    type: ClusterIP
 
   # No TLS on the ArgoCD server itself. TLS termination will be handled by
   # the Istio ingress gateway in Phase 4. In production you would NOT do this.

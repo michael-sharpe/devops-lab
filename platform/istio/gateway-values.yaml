@@ -7,9 +7,12 @@
 # The Istio gateway IS an ingress controller, but it also participates
 # in the mesh. This means incoming traffic gets the same mTLS, traffic
 # splitting, fault injection, and observability as internal traffic.
+#
+# HOW traffic reaches the gateway on kind:
+# kind maps localhost:30080 → control-plane container:30080 (NodePort).
+# The gateway Service uses NodePort 30080/30443 to receive external traffic.
 
-# Run on the control-plane node which has the port mappings
-# (ports 80/443 mapped from localhost into the kind cluster).
+# Run on the control-plane node which has the kind port mappings
 nodeSelector:
   ingress-ready: "true"
 
@@ -19,20 +22,22 @@ tolerations:
     effect: NoSchedule
 
 service:
-  # Use NodePort to work with kind's extraPortMappings.
-  # Traffic flow: localhost:80 → kind container:80 → gateway pod:80
   type: NodePort
   ports:
-    - name: http
+    - name: status-port
+      port: 15021
+      protocol: TCP
+      targetPort: 15021
+    - name: http2
       port: 80
+      protocol: TCP
       targetPort: 80
       nodePort: 30080
-      protocol: TCP
     - name: https
       port: 443
+      protocol: TCP
       targetPort: 443
       nodePort: 30443
-      protocol: TCP
 
 resources:
   requests:

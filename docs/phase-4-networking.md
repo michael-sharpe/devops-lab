@@ -102,10 +102,10 @@ kubectl get namespace bookinfo --show-labels
 
 ### 4. Access Bookinfo via the gateway
 ```bash
-# The gateway uses the kind port mappings (localhost:80 → gateway)
-curl -s http://localhost/productpage | head -20
+# The gateway uses NodePort 30080, mapped via kind's extraPortMappings
+curl -s http://localhost:30080/productpage | head -20
 ```
-Or open http://localhost/productpage in your browser.
+Or open http://localhost:30080/productpage in your browser.
 
 ### 5. Verify traces flow to Tempo
 After accessing the productpage a few times, open Grafana → Explore → Tempo.
