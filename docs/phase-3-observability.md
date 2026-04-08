@@ -125,7 +125,7 @@ In Grafana, go to Connections → Data sources. You should see:
 Send a test trace to verify the full pipeline works:
 ```bash
 # Port-forward the OTel Collector's OTLP HTTP receiver
-kubectl port-forward -n monitoring daemonset/otel-collector-opentelemetry-collector 4318:4318
+kubectl port-forward -n monitoring daemonset/otel-collector-opentelemetry-collector-agent 4318:4318
 
 # Send a test trace (in another terminal)
 curl -X POST http://localhost:4318/v1/traces \
