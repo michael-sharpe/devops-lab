@@ -40,6 +40,7 @@ spec:
       kind: MutatingWebhookConfiguration
       jqPathExpressions:
         - .webhooks[]?.clientConfig.caBundle
+        - .webhooks[]?.failurePolicy
 
   syncPolicy:
     automated:
@@ -47,6 +48,7 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true
       - ServerSideDiff=true
       - RespectIgnoreDifferences=true
     retry:
