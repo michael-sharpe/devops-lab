@@ -55,7 +55,7 @@ Collector (same node), which means:
 | Component | Namespace | Access | Purpose |
 |-----------|-----------|--------|---------|
 | Prometheus | monitoring | port-forward 9090 | Metrics collection and storage |
-| Grafana | monitoring | localhost:31000 (NodePort) | Visualization and dashboards |
+| Grafana | monitoring | `make grafana` → localhost:3000 | Visualization and dashboards |
 | AlertManager | monitoring | port-forward 9093 | Alert routing |
 | Tempo | tracing | internal only | Trace storage and query |
 | OTel Collector | monitoring | internal (DaemonSet) | Telemetry pipeline |
@@ -97,7 +97,10 @@ Expected:
 - tracing: tempo-0
 
 ### 3. Access Grafana
-Open http://localhost:31000 in your browser.
+```bash
+make grafana
+```
+Open http://localhost:3000 in your browser.
 - Username: `admin`
 - Password: `devops-lab`
 

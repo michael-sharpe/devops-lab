@@ -80,10 +80,11 @@ grafana:
         tracesToLogs:
           datasourceUid: ""
 
-  # Expose Grafana via NodePort for easy access before ingress is set up
+  # Use ClusterIP — access Grafana via 'make grafana' (port-forward to localhost:3000).
+  # NodePort would require adding the port to kind's extraPortMappings, which means
+  # recreating the cluster. Port-forward is simpler and works immediately.
   service:
-    type: NodePort
-    nodePort: 31000
+    type: ClusterIP
 
 # --- AlertManager ---
 alertmanager:

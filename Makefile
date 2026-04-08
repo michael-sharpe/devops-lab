@@ -151,6 +151,21 @@ argocd-bootstrap: ## Apply the root app-of-apps Application
 	@echo "$(GREEN)Root Application applied. ArgoCD now manages all apps from Git.$(NC)"
 
 # ==============================================================================
+# Phase 3: Observability
+# ==============================================================================
+
+.PHONY: grafana
+grafana: ## Port-forward Grafana to localhost:3000
+	@echo "$(GREEN)Grafana available at: http://localhost:3000$(NC)"
+	@echo "$(YELLOW)Username: admin | Password: devops-lab$(NC)"
+	kubectl port-forward -n monitoring svc/kube-prometheus-stack-grafana 3000:80
+
+.PHONY: prometheus
+prometheus: ## Port-forward Prometheus to localhost:9090
+	@echo "$(GREEN)Prometheus available at: http://localhost:9090$(NC)"
+	kubectl port-forward -n monitoring svc/kube-prometheus-stack-prometheus 9090:9090
+
+# ==============================================================================
 # Convenience targets
 # ==============================================================================
 
