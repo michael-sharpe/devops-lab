@@ -17,7 +17,8 @@ jobs:
         run: pip install yamllint
 
       - name: Run yamllint
-        run: yamllint -d '{extends: relaxed, rules: {line-length: {max: 150}}}' .
+        run: |
+          yamllint -d '{extends: relaxed, rules: {line-length: {max: 150}}}' .
 
   helm-lint:
     name: Helm Lint
