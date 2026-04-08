@@ -1,0 +1,53 @@
+# Root Application — the "app-of-apps"
+#
+# This is the ONLY ArgoCD Application you apply manually (via kubectl apply).
+# It tells ArgoCD to watch the apps/ directory and create all Application CRs
+# found there. Those Application CRs in turn deploy actual tools.
+#
+# WHY this pattern?
+# Adding a new tool = adding a YAML file to platform/app-of-apps/apps/.
+# No kubectl apply, no helm commands — just commit and push. ArgoCD picks it
+# up automatically because it's watching this directory.
+#
+# The chain:
+#   root-app → watches apps/ directory
+#     apps/argocd.yaml → manages ArgoCD itself (self-management)
+#     apps/kube-prometheus-stack.yaml → deploys Prometheus+Grafana (Phase 3)
+#     apps/istiod.yaml → deploys Istio control plane (Phase 4)
+#     ... and so on for every tool
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+  finalizers:
+    # Ensures child Applications are cleaned up when root app is deleted
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/michael-sharpe/devops-lab.git
+    targetRevision: main
+    path: platform/app-of-apps/apps
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+
+  syncPolicy:
+    automated:
+      # Auto-prune: delete an Application CR from apps/ → ArgoCD deletes
+      # the corresponding resources from the cluster
+      prune: true
+      # Self-heal: if someone manually changes a resource, ArgoCD reverts
+      # it to match Git (the single source of truth)
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 1m

@@ -1,0 +1,67 @@
+name: Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  yaml-lint:
+    name: YAML Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install yamllint
+        run: pip install yamllint
+
+      - name: Run yamllint
+        run: yamllint -d '{extends: relaxed, rules: {line-length: {max: 150}}}' .
+
+  helm-lint:
+    name: Helm Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Lint ArgoCD values
+        run: |
+          # Add the ArgoCD Helm repo and validate our values render correctly
+          helm repo add argo https://argoproj.github.io/argo-helm
+          helm template argocd argo/argo-cd \
+            --version 7.8.13 \
+            --values platform/argocd/values.yaml \
+            > /dev/null
+
+  yaml-validate:
+    name: YAML Syntax Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate all YAML files parse correctly
+        run: |
+          errors=0
+          while IFS= read -r file; do
+            if ! python3 -c "
+          import yaml, sys
+          try:
+              with open('$file') as f:
+                  list(yaml.safe_load_all(f))
+          except Exception as e:
+              print(f'FAIL: $file - {e}')
+              sys.exit(1)
+          " 2>&1; then
+              errors=$((errors + 1))
+            fi
+          done < <(find . -name '*.yaml' -o -name '*.yml' | grep -v '.git/' | sort)
+
+          if [ "$errors" -gt 0 ]; then
+            echo "::error::$errors YAML file(s) failed validation"
+            exit 1
+          fi
+          echo "All YAML files are valid."

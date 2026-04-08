@@ -1,0 +1,67 @@
+# ArgoCD Helm values for the DevOps Learning Lab
+# Chart: argo/argo-cd (https://argoproj.github.io/argo-helm)
+# Docs: https://argo-cd.readthedocs.io/en/stable/
+#
+# WHY these overrides?
+# The defaults are tuned for production HA deployments. For a learning lab we
+# want: fast feedback (short reconciliation), easy access (NodePort, no TLS),
+# and modest resource usage (single replicas).
+
+# --- Server ---
+server:
+  # Expose via NodePort so the UI is accessible at localhost:30080/30443
+  # BEFORE an ingress controller exists (ingress comes in Phase 4).
+  service:
+    type: NodePort
+    nodePortHttp: 30080
+    nodePortHttps: 30443
+
+  # No TLS on the ArgoCD server itself. TLS termination will be handled by
+  # the Istio ingress gateway in Phase 4. In production you would NOT do this.
+  extraArgs:
+    - --insecure
+
+# --- Config ---
+configs:
+  cm:
+    # Shorter reconciliation interval for faster feedback during learning.
+    # Production default is 180s. We use 30s so changes appear quickly.
+    timeout.reconciliation: 30s
+
+  params:
+    # Required when using --insecure
+    server.insecure: true
+
+  # Tell ArgoCD about our repository
+  repositories:
+    devops-lab:
+      url: https://github.com/michael-sharpe/devops-lab.git
+      name: devops-lab
+      type: git
+
+# --- Resource limits ---
+# Modest requests for a local lab. Prevents ArgoCD from consuming too much
+# of the kind cluster's resources, leaving room for the tools you deploy.
+controller:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+repoServer:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+redis:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi

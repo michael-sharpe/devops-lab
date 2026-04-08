@@ -1,0 +1,47 @@
+# ArgoCD self-management Application
+#
+# WHY self-management?
+# After the initial `helm install`, this Application tells ArgoCD to manage
+# its OWN installation from Git. If you change platform/argocd/values.yaml
+# and push, ArgoCD updates itself automatically. No more manual helm upgrades.
+#
+# This is the "bootstrap paradox" pattern: Helm creates ArgoCD, then ArgoCD
+# takes over managing itself via this Application CR.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  namespace: argocd
+  labels:
+    phase: "2"
+    component: gitops
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  # Multi-source: combine an upstream Helm chart with our values from Git.
+  # The $values ref lets the Helm source read values from the Git source.
+  sources:
+    - repoURL: https://argoproj.github.io/argo-helm
+      chart: argo-cd
+      targetRevision: 7.8.13
+      helm:
+        valueFiles:
+          - $values/platform/argocd/values.yaml
+    - repoURL: https://github.com/michael-sharpe/devops-lab.git
+      targetRevision: main
+      ref: values
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      # ServerSideApply avoids conflicts with the initial Helm install
+      - ServerSideApply=true

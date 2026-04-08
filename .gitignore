@@ -1,0 +1,35 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Kubernetes
+kubeconfig
+*.kubeconfig
+
+# Helm
+charts/
+*.tgz
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfplan
+.terraform.lock.hcl
+
+# Ansible
+*.retry
+
+# Secrets — NEVER commit these
+.env
+*.pem
+*.key
+credentials.json
+secrets.yaml
