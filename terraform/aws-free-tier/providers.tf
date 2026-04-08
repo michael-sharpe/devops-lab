@@ -43,6 +43,10 @@ provider "aws" {
   skip_metadata_api_check     = true
   skip_requesting_account_id  = true
 
+  # Force path-style S3 URLs: http://localhost:4566/bucket-name
+  # instead of http://bucket-name.localhost:4566 (which fails DNS lookup)
+  s3_use_path_style = true
+
   default_tags {
     tags = {
       Project     = "devops-lab"
