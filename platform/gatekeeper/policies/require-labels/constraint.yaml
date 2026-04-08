@@ -26,6 +26,9 @@ spec:
       - tracing
       - vault
       - gatekeeper-system
+      - crossplane-system
+      - trivy-system
+      - falco
   parameters:
     labels:
       - "app"

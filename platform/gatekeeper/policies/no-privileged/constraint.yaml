@@ -24,3 +24,5 @@ spec:
       - vault
       - gatekeeper-system
       - falco
+      - crossplane-system
+      - trivy-system
