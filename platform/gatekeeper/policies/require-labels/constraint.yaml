@@ -29,6 +29,10 @@ spec:
       - crossplane-system
       - trivy-system
       - falco
+      - argo
+      - argo-rollouts
+      - backstage
+      - chaos-mesh
   parameters:
     labels:
       - "app"

@@ -30,3 +30,7 @@ spec:
       - falco
       - crossplane-system
       - trivy-system
+      - argo
+      - argo-rollouts
+      - backstage
+      - chaos-mesh
