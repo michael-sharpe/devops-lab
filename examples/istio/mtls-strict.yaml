@@ -1,0 +1,19 @@
+# Strict mTLS — enforce mutual TLS for all traffic in the bookinfo namespace
+#
+# WHY? By default, Istio uses "permissive" mTLS: it accepts both plain and
+# encrypted traffic. Strict mode REJECTS unencrypted connections, enforcing
+# zero-trust networking. Any service without a sidecar can no longer talk
+# to services inside the mesh.
+#
+# Apply: kubectl apply -f examples/istio/mtls-strict.yaml
+# Verify: kubectl exec into a pod WITHOUT a sidecar and try to curl a
+#         bookinfo service — it should fail (connection reset)
+# Revert: kubectl delete -f examples/istio/mtls-strict.yaml
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: strict-mtls
+  namespace: bookinfo
+spec:
+  mtls:
+    mode: STRICT

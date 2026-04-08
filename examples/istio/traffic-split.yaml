@@ -1,0 +1,28 @@
+# Traffic Splitting — send 80% to reviews-v1, 20% to reviews-v2
+#
+# WHY? This is canary deployment at the network level. You can gradually
+# shift traffic to a new version and monitor error rates before going 100%.
+# In Phase 7, Argo Rollouts automates this with Prometheus-based analysis.
+#
+# Apply: kubectl apply -f examples/istio/traffic-split.yaml
+# Verify: refresh /productpage multiple times — ~80% will show no stars (v1),
+#         ~20% will show black stars (v2)
+# Revert: kubectl delete -f examples/istio/traffic-split.yaml
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: reviews
+  namespace: bookinfo
+spec:
+  hosts:
+    - reviews
+  http:
+    - route:
+        - destination:
+            host: reviews
+            subset: v1
+          weight: 80
+        - destination:
+            host: reviews
+            subset: v2
+          weight: 20

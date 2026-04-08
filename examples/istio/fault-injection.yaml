@@ -1,0 +1,29 @@
+# Fault Injection — inject a 5-second delay on the ratings service
+#
+# WHY? Fault injection lets you test how your application handles failures
+# WITHOUT breaking the actual service. Istio injects the fault at the proxy
+# level — the ratings service itself is healthy, but responses are delayed.
+# This tests timeout handling, retry logic, and circuit breakers.
+#
+# Apply: kubectl apply -f examples/istio/fault-injection.yaml
+# Verify: visit /productpage — the reviews section will take ~5s to load
+#         (or timeout if the productpage has a shorter timeout configured)
+# Revert: kubectl delete -f examples/istio/fault-injection.yaml
+apiVersion: networking.istio.io/v1
+kind: VirtualService
+metadata:
+  name: ratings-fault
+  namespace: bookinfo
+spec:
+  hosts:
+    - ratings
+  http:
+    - fault:
+        delay:
+          percentage:
+            value: 100.0
+          fixedDelay: 5s
+      route:
+        - destination:
+            host: ratings
+            subset: v1

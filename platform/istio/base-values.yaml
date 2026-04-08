@@ -1,0 +1,12 @@
+# Istio Base — CRDs and cluster-wide resources
+# Chart: istio/base
+# This installs Istio's Custom Resource Definitions (VirtualService,
+# DestinationRule, Gateway, PeerAuthentication, etc.) that the control
+# plane and data plane depend on.
+#
+# WHY separate from istiod?
+# CRDs must exist before any controller can create instances of them.
+# Splitting base (CRDs) from istiod (controller) lets ArgoCD install
+# them in order via sync waves.
+
+defaultRevision: default

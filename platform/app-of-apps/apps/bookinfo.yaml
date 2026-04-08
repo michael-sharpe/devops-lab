@@ -1,0 +1,46 @@
+# Bookinfo — Istio's classic demo application
+# Sync wave 3: requires Istio (base + istiod + gateway) to be running
+# so that sidecar injection works and Gateway/VirtualService CRDs exist.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: bookinfo
+  namespace: argocd
+  labels:
+    phase: "4"
+    component: demo-app
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/michael-sharpe/devops-lab.git
+    targetRevision: main
+    path: apps/bookinfo
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: bookinfo
+
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jqPathExpressions:
+        - .status.terminatingReplicas
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideDiff=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 1m

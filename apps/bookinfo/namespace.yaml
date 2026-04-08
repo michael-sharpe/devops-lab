@@ -1,0 +1,10 @@
+# Bookinfo namespace with Istio sidecar injection enabled.
+# WHY the label? When istio-injection=enabled, Istio's mutating webhook
+# automatically injects an Envoy sidecar proxy into every pod in this
+# namespace. No changes to your Deployment YAML needed.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bookinfo
+  labels:
+    istio-injection: enabled

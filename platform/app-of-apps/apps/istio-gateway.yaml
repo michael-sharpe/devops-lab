@@ -1,0 +1,52 @@
+# Istio Ingress Gateway — edge proxy for external traffic
+# Sync wave 2: requires istiod running to configure the Envoy proxy
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: istio-gateway
+  namespace: argocd
+  labels:
+    phase: "4"
+    component: networking
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  sources:
+    - repoURL: https://istio-release.storage.googleapis.com/charts
+      chart: gateway
+      targetRevision: 1.29.1
+      helm:
+        valueFiles:
+          - $values/platform/istio/gateway-values.yaml
+    - repoURL: https://github.com/michael-sharpe/devops-lab.git
+      targetRevision: main
+      ref: values
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: istio-system
+
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jqPathExpressions:
+        - .status.terminatingReplicas
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - ServerSideDiff=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m

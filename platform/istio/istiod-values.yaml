@@ -1,0 +1,45 @@
+# Istiod — Istio control plane
+# Chart: istio/istiod
+# Istiod is the single binary that runs Istio's control plane: Pilot
+# (config distribution), Citadel (certificate management for mTLS),
+# and Galley (config validation).
+#
+# WHY a service mesh?
+# Without a mesh, every service must implement its own TLS, retries,
+# circuit breaking, and observability. Istio moves all of that into
+# sidecar proxies (Envoy) that are injected alongside each pod. Your
+# application code stays clean; the infrastructure handles the rest.
+
+pilot:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+meshConfig:
+  # Auto-inject mTLS between all services. This means all service-to-service
+  # traffic is encrypted with certificates that Istio manages automatically.
+  # Zero config required from application developers.
+  enableAutoMtls: true
+
+  # Send access logs to stdout so they appear in pod logs.
+  # Useful for debugging routing and seeing request metadata.
+  accessLogFile: /dev/stdout
+
+  # Tracing configuration — send traces to the OTel Collector.
+  # Istio sidecars generate spans for every request they proxy.
+  enableTracing: true
+  defaultConfig:
+    tracing:
+      sampling: 100.0
+      zipkin:
+        # OTel Collector's Zipkin receiver in the monitoring namespace
+        address: otel-collector-opentelemetry-collector-agent.monitoring:9411
+
+  # Outbound traffic policy: ALLOW_ANY lets pods reach external services
+  # without explicit ServiceEntry resources. Simpler for a learning lab.
+  # Production would use REGISTRY_ONLY for tighter control.
+  outboundTrafficPolicy:
+    mode: ALLOW_ANY
