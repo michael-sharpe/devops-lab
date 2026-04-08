@@ -1,0 +1,37 @@
+# Chaos Mesh Helm values
+# Chart: chaos-mesh/chaos-mesh
+# Docs: https://chaos-mesh.org/docs/
+#
+# WHY Chaos Mesh?
+# "Everything fails, all the time" — Werner Vogels. Chaos engineering
+# deliberately breaks things to find weaknesses BEFORE they hit production.
+# Chaos Mesh lets you kill pods, inject network delays, stress CPU/memory,
+# and more — all defined as Kubernetes CRDs.
+
+dashboard:
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+
+controllerManager:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+chaosDaemon:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+  # Required on kind for syscall-level experiments
+  runtime: containerd
+  socketPath: /run/containerd/containerd.sock

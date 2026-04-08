@@ -1,0 +1,19 @@
+# Pod Kill — kill a random bookinfo pod and watch it recover
+#
+# Apply: kubectl apply -f examples/chaos/pod-kill.yaml
+# Watch: kubectl get pods -n bookinfo -w
+# Delete: kubectl delete -f examples/chaos/pod-kill.yaml
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: pod-kill-demo
+  namespace: chaos-mesh
+spec:
+  action: pod-kill
+  mode: one
+  selector:
+    namespaces:
+      - bookinfo
+    labelSelectors:
+      app: productpage
+  duration: "30s"

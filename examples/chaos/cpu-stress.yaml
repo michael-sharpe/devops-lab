@@ -1,0 +1,26 @@
+# CPU Stress — overload a pod's CPU to test resource limits and HPA
+#
+# WHY? Tests whether your resource limits are set correctly. If limits
+# are too low, the pod gets throttled. If there's no limit, it starves
+# other pods on the same node.
+#
+# Apply: kubectl apply -f examples/chaos/cpu-stress.yaml
+# Watch: kubectl top pods -n bookinfo (if metrics-server is available)
+# Delete: kubectl delete -f examples/chaos/cpu-stress.yaml
+apiVersion: chaos-mesh.org/v1alpha1
+kind: StressChaos
+metadata:
+  name: cpu-stress-demo
+  namespace: chaos-mesh
+spec:
+  mode: one
+  selector:
+    namespaces:
+      - bookinfo
+    labelSelectors:
+      app: ratings
+  stressors:
+    cpu:
+      workers: 2
+      load: 80
+  duration: "60s"

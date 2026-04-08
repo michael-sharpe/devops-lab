@@ -1,0 +1,27 @@
+# Network Delay — inject 200ms latency on the reviews service
+#
+# WHY? Tests how your application handles slow dependencies.
+# Does the UI show a loading spinner? Does it timeout gracefully?
+# Or does it hang forever?
+#
+# Apply: kubectl apply -f examples/chaos/network-delay.yaml
+# Test:  curl http://localhost:30080/productpage (should be noticeably slower)
+# Delete: kubectl delete -f examples/chaos/network-delay.yaml
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: network-delay-demo
+  namespace: chaos-mesh
+spec:
+  action: delay
+  mode: all
+  selector:
+    namespaces:
+      - bookinfo
+    labelSelectors:
+      app: reviews
+  delay:
+    latency: "200ms"
+    jitter: "50ms"
+    correlation: "50"
+  duration: "60s"

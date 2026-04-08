@@ -1,0 +1,104 @@
+# Example CI Pipeline — Argo Workflows
+#
+# A multi-step workflow that demonstrates:
+# 1. Clone a repo
+# 2. Run lint checks
+# 3. Run tests (simulated)
+# 4. Build report
+#
+# Apply: kubectl apply -f examples/workflows/ci-pipeline.yaml -n argo
+# Watch: kubectl get workflows -n argo -w
+# Logs:  kubectl logs -n argo -l workflows.argoproj.io/workflow=ci-pipeline
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  name: ci-pipeline
+  namespace: argo
+spec:
+  entrypoint: pipeline
+  templates:
+    - name: pipeline
+      dag:
+        tasks:
+          - name: checkout
+            template: checkout
+          - name: lint
+            template: lint
+            dependencies: [checkout]
+          - name: test
+            template: test
+            dependencies: [checkout]
+          - name: report
+            template: report
+            dependencies: [lint, test]
+
+    - name: checkout
+      container:
+        image: alpine/git:latest
+        command: [sh, -c]
+        args:
+          - |
+            echo "=== Cloning repository ==="
+            git clone --depth 1 https://github.com/michael-sharpe/devops-lab.git /work
+            ls -la /work
+            echo "=== Checkout complete ==="
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            memory: 128Mi
+
+    - name: lint
+      container:
+        image: cytopia/yamllint:latest
+        command: [sh, -c]
+        args:
+          - |
+            echo "=== Running YAML lint ==="
+            # Simulated lint — in a real pipeline this would lint actual files
+            echo "All YAML files pass lint checks"
+            echo "=== Lint complete ==="
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            memory: 128Mi
+
+    - name: test
+      container:
+        image: busybox:1.36
+        command: [sh, -c]
+        args:
+          - |
+            echo "=== Running tests ==="
+            echo "Test 1: Cluster connectivity... PASS"
+            echo "Test 2: Namespace validation... PASS"
+            echo "Test 3: Resource limits check... PASS"
+            echo "=== All tests passed ==="
+        resources:
+          requests:
+            cpu: 50m
+            memory: 32Mi
+          limits:
+            memory: 64Mi
+
+    - name: report
+      container:
+        image: busybox:1.36
+        command: [sh, -c]
+        args:
+          - |
+            echo "=== Build Report ==="
+            echo "Pipeline: ci-pipeline"
+            echo "Status: SUCCESS"
+            echo "Steps completed: checkout, lint, test"
+            echo "Timestamp: $(date -u)"
+            echo "==================="
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+          limits:
+            memory: 32Mi

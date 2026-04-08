@@ -1,0 +1,27 @@
+# Argo Rollouts Helm values
+# Chart: argo/argo-rollouts
+# Docs: https://argo-rollouts.readthedocs.io/
+#
+# WHY Argo Rollouts?
+# Kubernetes Deployments only support rolling updates. Argo Rollouts
+# adds canary deployments (gradually shift traffic) and blue-green
+# deployments (instant switch with preview). It integrates with Istio
+# for traffic splitting and Prometheus for automated analysis — if
+# error rate spikes during a canary, Rollouts automatically rolls back.
+
+controller:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+dashboard:
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi

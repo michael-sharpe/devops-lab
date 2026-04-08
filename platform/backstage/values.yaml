@@ -1,0 +1,65 @@
+# Backstage Helm values
+# Chart: backstage/backstage
+# Docs: https://backstage.io/docs/
+#
+# WHY Backstage?
+# Backstage is Spotify's developer portal. It provides a single pane of
+# glass for your platform: service catalog, API docs, CI/CD status,
+# Kubernetes pod status, ArgoCD sync status. It's how platform teams
+# expose self-service capabilities to developers.
+#
+# NOTE: Backstage is the most resource-heavy component in this lab.
+# It requires PostgreSQL and takes 2-3 minutes to start.
+
+backstage:
+  image:
+    # Use the official Backstage Docker image
+    registry: ghcr.io
+    repository: backstage/backstage
+    tag: latest
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      memory: 1Gi
+
+  appConfig:
+    # Inline app-config — configures Backstage's plugins and catalog
+    app:
+      title: "DevOps Lab Portal"
+      baseUrl: http://localhost:7007
+
+    backend:
+      baseUrl: http://localhost:7007
+      listen:
+        port: 7007
+      database:
+        client: pg
+        connection:
+          host: ${POSTGRES_HOST}
+          port: ${POSTGRES_PORT}
+          user: ${POSTGRES_USER}
+          password: ${POSTGRES_PASSWORD}
+
+    catalog:
+      rules:
+        - allow: [Component, System, API, Resource, Location]
+      locations:
+        # Register our repo's catalog-info.yaml
+        - type: url
+          target: https://github.com/michael-sharpe/devops-lab/blob/main/platform/backstage/catalog-info.yaml
+
+# Bundled PostgreSQL
+postgresql:
+  enabled: true
+  auth:
+    password: "backstage"
+  primary:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 512Mi

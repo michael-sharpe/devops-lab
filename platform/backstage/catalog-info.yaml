@@ -1,0 +1,75 @@
+# Backstage Service Catalog — registers all components in this repo
+#
+# WHY a catalog? Backstage needs to know what services exist, who owns
+# them, and where they live. This file registers our demo apps and
+# platform components so they appear in the Backstage portal.
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: devops-lab
+  description: Local DevOps learning lab platform
+  annotations:
+    github.com/project-slug: michael-sharpe/devops-lab
+spec:
+  owner: platform-team
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: bookinfo-productpage
+  description: Bookinfo product page (Istio demo app)
+  annotations:
+    github.com/project-slug: michael-sharpe/devops-lab
+    argocd/app-name: bookinfo
+  tags:
+    - python
+    - istio
+    - demo
+spec:
+  type: service
+  lifecycle: experimental
+  owner: platform-team
+  system: devops-lab
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: observability-stack
+  description: Prometheus + Grafana + Tempo + OTel Collector
+  tags:
+    - monitoring
+    - tracing
+spec:
+  type: infrastructure
+  lifecycle: production
+  owner: platform-team
+  system: devops-lab
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: istio-mesh
+  description: Istio service mesh (mTLS, traffic management, observability)
+  tags:
+    - networking
+    - security
+spec:
+  type: infrastructure
+  lifecycle: production
+  owner: platform-team
+  system: devops-lab
+---
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: security-stack
+  description: Vault + Gatekeeper + Trivy + Falco
+  tags:
+    - security
+    - policy
+spec:
+  type: infrastructure
+  lifecycle: production
+  owner: platform-team
+  system: devops-lab

@@ -1,0 +1,38 @@
+# Argo Workflows Helm values
+# Chart: argo/argo-workflows
+# Docs: https://argo-workflows.readthedocs.io/
+#
+# WHY Argo Workflows?
+# Argo Workflows is a Kubernetes-native workflow engine. Each step runs
+# in its own container, defined as a DAG or sequence. Use cases: CI/CD
+# pipelines, data processing, ML training, batch jobs. It replaces
+# Jenkins/GitLab CI with something that's declarative and K8s-native.
+
+server:
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+  # Allow access without authentication for the learning lab
+  extraArgs:
+    - --auth-mode=server
+
+controller:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+# Use emissary executor — more compatible than docker/pns
+executor:
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      memory: 64Mi
